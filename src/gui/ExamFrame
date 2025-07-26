@@ -1,0 +1,133 @@
+package gui;
+
+import dao.ResultDAO;
+import data.QuestionData;
+import model.Question;
+import model.Student;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class ExamFrame extends JFrame {
+    private Student student;
+    private int index = 0, score = 0;
+    private java.util.List<Question> questions = QuestionData.questions;
+    private JLabel questionLabel, infoLabel, timerLabel;
+    private JRadioButton a, b, c, d;
+    private ButtonGroup options;
+    private Timer timer;
+    private int timeLeft = 60; // 1 minute
+
+    public ExamFrame(Student student) {
+        this.student = student;
+        setTitle("Online Examination - Exam");
+        setSize(500, 400);
+        setLayout(null);
+
+        infoLabel = new JLabel("Name: " + student.getName() + " | Roll: " + student.getRollNo() + " | ID: " + student.getId());
+        infoLabel.setBounds(10, 10, 480, 25);
+        add(infoLabel);
+
+        timerLabel = new JLabel("Time Left: 60 seconds");
+        timerLabel.setBounds(350, 10, 140, 25);
+        add(timerLabel);
+
+        questionLabel = new JLabel();
+        questionLabel.setBounds(20, 50, 450, 30);
+        add(questionLabel);
+
+        a = new JRadioButton();
+        b = new JRadioButton();
+        c = new JRadioButton();
+        d = new JRadioButton();
+        a.setBounds(20, 100, 450, 25);
+        b.setBounds(20, 130, 450, 25);
+        c.setBounds(20, 160, 450, 25);
+        d.setBounds(20, 190, 450, 25);
+
+        add(a); add(b); add(c); add(d);
+
+        options = new ButtonGroup();
+        options.add(a); options.add(b); options.add(c); options.add(d);
+
+        JButton prevBtn = new JButton("Previous");
+        prevBtn.setBounds(100, 250, 100, 30);
+        add(prevBtn);
+
+        JButton nextBtn = new JButton("Next");
+        nextBtn.setBounds(300, 250, 100, 30);
+        add(nextBtn);
+
+        prevBtn.addActionListener(e -> loadPreviousQuestion());
+        nextBtn.addActionListener(e -> loadNextQuestion());
+
+        startTimer();
+        loadQuestion();
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
+    }
+
+    void startTimer() {
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                timeLeft--;
+                timerLabel.setText("Time Left: " + timeLeft + " seconds");
+                if (timeLeft <= 0) {
+                    timer.cancel();
+                    autoSubmit();
+                }
+            }
+        }, 1000, 1000);
+    }
+
+    void loadQuestion() {
+        Question q = questions.get(index);
+        questionLabel.setText((index + 1) + ". " + q.getText());
+        a.setText("A. " + q.getA());
+        b.setText("B. " + q.getB());
+        c.setText("C. " + q.getC());
+        d.setText("D. " + q.getD());
+        options.clearSelection();
+    }
+
+    void loadNextQuestion() {
+        checkAnswer();
+        if (index < questions.size() - 1) {
+            index++;
+            loadQuestion();
+        } else {
+            submitExam();
+        }
+    }
+
+    void loadPreviousQuestion() {
+        if (index > 0) {
+            index--;
+            loadQuestion();
+        }
+    }
+
+    void checkAnswer() {
+        Question q = questions.get(index);
+        if (a.isSelected() && q.getCorrect().equals("A")) score++;
+        else if (b.isSelected() && q.getCorrect().equals("B")) score++;
+        else if (c.isSelected() && q.getCorrect().equals("C")) score++;
+        else if (d.isSelected() && q.getCorrect().equals("D")) score++;
+    }
+
+    void submitExam() {
+        timer.cancel();
+        double percentage = (score / (double) questions.size()) * 100;
+        ResultDAO.saveResult(student, score, percentage);
+        dispose();
+        new ResultFrame(score, percentage);
+    }
+
+    void autoSubmit() {
+        submitExam();
+    }
+}
