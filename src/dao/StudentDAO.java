@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 
 public class StudentDAO {
 
-    // ✅ Registration: Save student name, roll number, password into the database
     public static boolean registerStudent(Student student) {
         boolean success = false;
         try {
@@ -25,7 +24,6 @@ public class StudentDAO {
         return success;
     }
 
-    // ✅ Login: Authenticate student using roll number and password
     public static Student loginStudent(String rollNo, String password) {
         Student student = null;
         try {
@@ -48,3 +46,4 @@ public class StudentDAO {
         return student;
     }
 }
+
