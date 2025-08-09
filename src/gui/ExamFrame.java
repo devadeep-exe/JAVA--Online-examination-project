@@ -18,7 +18,7 @@ public class ExamFrame extends JFrame {
     private JRadioButton a, b, c, d;
     private ButtonGroup options;
     private Timer timer;
-    private int timeLeft = 60; // 1 minute
+    private int timeLeft = 90; 
 
     public ExamFrame(Student student) {
         this.student = student;
